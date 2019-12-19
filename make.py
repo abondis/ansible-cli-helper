@@ -130,7 +130,13 @@ class MainLoop(cmd.Cmd):
         """
         Dry run a chosen action
         """
-        self.do_run(action, ' --check', opts, limits)
+        opt = " --check"
+        if opts:
+            opts =" ".join(opt, opts)
+        else:
+            opts = opt
+
+        self.do_run(action, opts, limits)
 
     def do_exit(self, s):
         """

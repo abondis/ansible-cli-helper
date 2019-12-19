@@ -1,0 +1,70 @@
+#+TITLE: Ansible CLI Helper
+#+DATE:    December 19, 2019
+#+SINCE:   {replace with next tagged release version}
+#+STARTUP: inlineimages
+
+* Table of Contents :TOC_3:noexport:
+- [[#description][Description]]
+- [[#dependencies][Dependencies]]
+- [[#installation][Installation]]
+- [[#configuration][Configuration]]
+  - [[#using-a-jumphost][Using a jumphost]]
+- [[#usage][Usage]]
+  - [[#pass-limits-to-commands][Pass limits to commands]]
+- [[#troubleshooting][Troubleshooting]]
+
+* Description
+This script creates an interactive shell to run common commands on servers using
+ansible.
+
+* Dependencies
+- =ansible=
+- =ssh=
+
+* Installation
+Clone the repository somewhere and add =main.py= into your path (ie: =ln -s
+$(PWD)/make.py ~/.local/bin/ansible_helper=)
+- [ ] TODO: rename modules
+- [ ] TODO: have a proper setup.py
+
+* Configuration
+Copy =config_sample.py= to =config.py= in your ansible project.
+
+You also need to configure your ansible hosts and their specific SSH options.
+
+** Using a jumphost
+If for example some hosts are not available publicly and you need to go through
+a jumphost to connect to it, configure your `hosts.yml` accordingly.
+
+For example:
+#+BEGIN_SRC yaml
+all:
+  hosts:
+    public:
+      ansible_host: 192.168.10.10
+    private:
+      ansible_ssh_extra_args: -o "ProxyJump=192.168.10.10"
+#+END_SRC
+
+* Usage
+Start the CLI using =python make.py=. Commands have a basic autocomplete and
+shows suggestions.
+
+Here is a summary of the available commands:
+- =help=: show possible commands
+- switch environment: =env nameofenv= . *NOTE*: =env= is just a filter for
+  ansible hosts. For example for  =srv1:web:prod= you could use any part or all
+  of it to match an environment.
+- list hosts configured for the current environment: =hosts=
+- list hosts impacted by an action: =list someactionname=
+- ssh into a host: =ssh nameofhost=
+- show logs: =logs someservicename=. =someservicename= is defined in the
+  configuration and will remotely call whatever command you want to run (ie:
+  =journalctl -f=
+
+** Pass limits to commands
+it is possible to narrow down hosts selected when running an action/check, using
+=someactionname somehost=
+
+* Troubleshooting
+...

@@ -115,6 +115,8 @@ class MainLoop(cmd.Cmd):
         """
         Run different actions (see action variable at the top of the file)
         """
+        # FIXME: parse `action` to get proper arguments
+        print(action)
         if action in actions:
             command = self.ansible_cmd(limits) + actions[action] + opts
             print(command)

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import cmd
 import os
+import subprocess
 from scripts.ssh import get_hosts, open_ssh
 import sys
+# add CWD path to sys path to be able to import config.py
 sys.path.insert(0, sys.path.insert(0, os.getcwd()))
 
 try:
@@ -24,6 +26,25 @@ except Exception as e:
         from config import ansible_cmd, actions, journalctl, logs, envs
     else:
         raise e
+# Magic!
+default_env, = envs[0:1] or [""]
+
+# arguments handling
+import argparse
+import shlex
+
+# NOTE: does it exist somewhere in the std lib?
+def split_n_call(command):
+    command = shlex.split(command)
+    return subprocess.check_call(command)
+
+action_parser = argparse.ArgumentParser(
+    description='Parse actions argumetns'
+)
+action_parser.add_argument("action", help="Action to call")
+action_parser.add_argument("-o", "--opts", nargs="?", help="Command options")
+action_parser.add_argument("-l", "--limits",nargs="?",  help="Command limits to append")
+
 
 def _completer(_func):
     """
@@ -52,7 +73,7 @@ complete_actions = _completer(actions.keys)
 
 class MainLoop(cmd.Cmd):
 
-    env = ""
+    env = default_env
     complete_run = complete_actions
     complete_check = complete_actions
     complete_list = complete_actions
@@ -111,16 +132,33 @@ class MainLoop(cmd.Cmd):
         if host in self.hosts:
             open_ssh(self.hosts.get(host), [])
 
+    # NOTE: limits and opts args are used by other commands (ie: do_list)
     def do_run(self, action, opts="", limits=None):
         """
         Run different actions (see action variable at the top of the file)
         """
-        # FIXME: parse `action` to get proper arguments
-        print(action)
-        if action in actions:
-            command = self.ansible_cmd(limits) + actions[action] + opts
+        # Parse action using argparse
+        parsed = action_parser.parse_args(
+            shlex.split(action)
+        )
+        if parsed.action in actions:
+            # Add a space ... just in case
+            if parsed.opts:
+                opts += " " + parsed.opts
+            if parsed.limits:
+                if limits:
+                    limits += ":"
+                else:
+                    limits = ""
+                limits +=  parsed.limits
+            command = (
+                self.ansible_cmd(limits)
+                + opts + " "
+                + actions[parsed.action]
+            )
             print(command)
-            os.system(command)
+            # FIXME: use subprocess?
+            split_n_call(command)
 
     def do_list(self, action):
         """
@@ -166,7 +204,7 @@ class MainLoop(cmd.Cmd):
         """
         Accept ! to run a shell command (ie: '! ls')
         """
-        os.system(s)
+        split_n_call(s)
 
     do_EOF = do_exit
 

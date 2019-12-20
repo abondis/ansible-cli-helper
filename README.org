@@ -10,7 +10,7 @@
 - [[#configuration][Configuration]]
   - [[#using-a-jumphost][Using a jumphost]]
 - [[#usage][Usage]]
-  - [[#pass-limits-to-commands][Pass limits to commands]]
+  - [[#pass-limits-or-arguments-to-commands][Pass limits or arguments to commands]]
 - [[#troubleshooting][Troubleshooting]]
 
 * Description
@@ -57,14 +57,27 @@ Here is a summary of the available commands:
   of it to match an environment.
 - list hosts configured for the current environment: =hosts=
 - list hosts impacted by an action: =list someactionname=
+- check potential impact of an action =check someactionname=
+- run  an action =run someactionname=
 - ssh into a host: =ssh nameofhost=
 - show logs: =logs someservicename=. =someservicename= is defined in the
   configuration and will remotely call whatever command you want to run (ie:
-  =journalctl -f=
+  =journalctl -f=)
 
-** Pass limits to commands
-it is possible to narrow down hosts selected when running an action/check, using
-=someactionname somehost=
+** Pass limits or arguments to commands
+it is possible to narrow down hosts selected when running an action/check, by
+adding the following to the command:
+- =-o=: this will pass whatever is passed to -o to ansible. For exemple this
+  will print the help
+  #+BEGIN_SRC shell
+list main -o="--help"
+  #+END_SRC
+  And this will limit the listing to hosts matching =myhost=
+  #+BEGIN_SRC shell
+list main -l myhost
+  #+END_SRC
+
+For now only =list= =check= and =run= support those options
 
 * Troubleshooting
 ...

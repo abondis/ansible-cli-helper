@@ -157,8 +157,10 @@ class MainLoop(cmd.Cmd):
                 + actions[parsed.action]
             )
             print(command)
-            # FIXME: use subprocess?
-            split_n_call(command)
+            try:
+                split_n_call(command)
+            except Exception as e:
+                str(e)
 
     def do_list(self, action):
         """

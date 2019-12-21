@@ -4,6 +4,12 @@ import os
 import subprocess
 from scripts.ssh import get_hosts, open_ssh
 import sys
+
+
+try:
+    import readline
+except ImportError:
+    readline = None
 # add CWD path to sys path to be able to import config.py
 sys.path.insert(0, sys.path.insert(0, os.getcwd()))
 
@@ -71,6 +77,14 @@ def _completer(_func):
 complete_actions = _completer(actions.keys)
 
 
+histfile = os.path.join(
+    os.getcwd(),
+    ".ansible_cli.history"
+)
+
+histfile_size = 1000
+
+
 class MainLoop(cmd.Cmd):
 
     env = default_env
@@ -79,6 +93,15 @@ class MainLoop(cmd.Cmd):
     complete_list = complete_actions
     complete_env = _completer(lambda: envs)
     complete_logs = _completer(logs.keys)
+
+    def preloop(self):
+        if readline and os.path.exists(histfile):
+            readline.read_history_file(histfile)
+
+    def postloop(self):
+        if readline:
+            readline.set_history_length(histfile_size)
+            readline.write_history_file(histfile)
 
     def _get_hosts(self, limit=None):
         """
